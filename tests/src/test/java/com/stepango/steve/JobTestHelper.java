@@ -59,7 +59,7 @@ public class JobTestHelper {
 
             @Override
             public Observable<String> operation() {
-                return Observable.timer(delay, TimeUnit.SECONDS).map(x -> result);
+                return Observable.timer(delay, TimeUnit.MILLISECONDS).map(x -> result);
             }
         };
     }

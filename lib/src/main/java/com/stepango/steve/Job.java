@@ -168,6 +168,18 @@ public abstract class Job<S> {
         eventsEmitter = emitter;
     }
 
+    public void waitFor(Job job) {
+        waitFor(new JobEvent(job.jobId, State.FINISHED));
+    }
+
+    public void waitFor(Job... jobs) {
+        List<JobEvent> jobEvents = new ArrayList<>();
+        for (Job job : jobs) {
+            jobEvents.add(new JobEvent(job.jobId, State.FINISHED));
+        }
+        waitFor(jobEvents);
+    }
+
     public void waitFor(JobEvent event) {
         waitFor(new ArrayList<>(Collections.singleton(event)));
     }
@@ -223,7 +235,7 @@ public abstract class Job<S> {
         }
     }
 
-    private void processParentResult(Job job) {
+    private synchronized void processParentResult(Job job) {
         for (Iterator<JobEvent> iterator = waitingList.iterator(); iterator.hasNext(); ) {
             JobEvent event = iterator.next();
             if (event.jobId.equals(job.jobId)) {
