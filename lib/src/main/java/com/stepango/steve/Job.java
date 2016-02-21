@@ -1,5 +1,6 @@
 package com.stepango.steve;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -168,11 +169,11 @@ public abstract class Job<S> {
     }
 
     public void waitFor(JobEvent event) {
-        waitFor(Collections.singleton(event));
+        waitFor(new ArrayList<>(Collections.singleton(event)));
     }
 
     public void waitFor(JobEvent... events) {
-        waitFor(Arrays.asList(events));
+        waitFor(new ArrayList<>(Arrays.asList(events)));
     }
 
     public void waitFor(List<JobEvent> eventList) {
@@ -214,6 +215,30 @@ public abstract class Job<S> {
 
     public void addAfterAction(Action1<Job> after) {
         afterActions.add(after);
+    }
+
+    public void notifyParentResult(Job job) {
+        if (waitingList != null && !waitingList.isEmpty()) {
+            processParentResult(job);
+        }
+    }
+
+    private void processParentResult(Job job) {
+        for (Iterator<JobEvent> iterator = waitingList.iterator(); iterator.hasNext(); ) {
+            JobEvent event = iterator.next();
+            if (event.jobId.equals(job.jobId)) {
+                iterator.remove();
+                onParentResult(job);
+                break;
+            }
+        }
+        if (waitingList.isEmpty()) {
+            ControlCenter.getInstance().start(this);
+        }
+    }
+
+    protected void onParentResult(Job job) {
+        // check jobid
     }
 
     enum State {

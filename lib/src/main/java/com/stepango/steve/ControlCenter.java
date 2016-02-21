@@ -11,10 +11,14 @@ public class ControlCenter {
 
     //May be replace String by Pair<Class, ID>
     final ConcurrentHashMap<String, Job> JOBS = new ConcurrentHashMap<>();
+    final ConcurrentHashMap<String, Job> WAITING_JOBS = new ConcurrentHashMap<>();
     private Action1<Job> after = new Action1<Job>() {
         @Override
         public void call(Job job) {
-            JOBS.remove(job.jobId);
+            Job parent = JOBS.remove(job.jobId);
+            for (Job receiver : WAITING_JOBS.values()) {
+                receiver.notifyParentResult(parent);
+            }
         }
     };
 
@@ -28,7 +32,10 @@ public class ControlCenter {
 
     synchronized <S> Job<S> start(Job<S> job) {
         if (couldStart(job)) {
+            WAITING_JOBS.remove(job.jobId);
             return applyStrategy(job);
+        } else {
+            WAITING_JOBS.put(job.jobId, job);
         }
         return job;
     }

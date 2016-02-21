@@ -1,5 +1,6 @@
 package com.stepango.steve;
 
+//TODO: jobid should be enough
 public class JobEvent {
 
     final String jobId;
