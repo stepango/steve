@@ -20,7 +20,7 @@ public class WaitForTest {
             latch.countDown();
         });
         Job<String> job3 = JobTestHelper.makeJob("3", "3", 100, result::add);
-        job2.waitFor(new JobEvent(job3.jobId, Job.State.FINISHED));
+        job2.waitFor(new JobEvent(job3.jobId));
         job3.waitFor(job);
         job.start();
         job2.start();

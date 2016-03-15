@@ -4,6 +4,8 @@ import org.junit.Test;
 
 import java.util.concurrent.CountDownLatch;
 
+import rx.schedulers.Schedulers;
+
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
@@ -14,8 +16,8 @@ public class StrategyTest {
 
     @Test
     public void waitForPrevious() throws Exception {
-        Job<String> job1 = JobTestHelper.makeJob("1", "1", 1);
-        Job<String> job2 = JobTestHelper.makeJob("1", "2", 1);
+        Job<String> job1 = JobTestHelper.makeJob("1-waitForPrevious", "1", 100);
+        Job<String> job2 = JobTestHelper.makeJob("1-waitForPrevious", "2", 100);
         final String[] result = new String[2];
         final CountDownLatch countDown = new CountDownLatch(2);
         job1.start()
@@ -33,9 +35,9 @@ public class StrategyTest {
 
     @Test
     public void resubscribePrevious() throws Exception {
-        Job<String> job1 = JobTestHelper.makeJob("1", "1", 1);
+        Job<String> job1 = JobTestHelper.makeJob("1-resubscribePrevious", "1", 100);
         job1.strategy = Job.Strategy.RESUBSCRIBE_PREVIOUS;
-        Job<String> job2 = JobTestHelper.makeJob("1", "2", 1);
+        Job<String> job2 = JobTestHelper.makeJob("1-resubscribePrevious", "2", 100);
         job2.strategy = Job.Strategy.RESUBSCRIBE_PREVIOUS;
         final String[] result = new String[2];
         final CountDownLatch countDown = new CountDownLatch(2);

@@ -14,7 +14,7 @@ import rx.Observable;
 import rx.Subscription;
 import rx.functions.Action0;
 import rx.functions.Action1;
-import rx.schedulers.Schedulers;
+import rx.subjects.BehaviorSubject;
 import rx.subjects.Subject;
 
 //TODO switch states internally instead of ControlCenter
@@ -51,7 +51,7 @@ public abstract class Job<S> {
     private final Queue<Action1<Job>> afterActions = new LinkedBlockingDeque<>();
     private final Queue<Action1<Job>> beforeActions = new LinkedBlockingDeque<>();
 
-    Subject<S, S> eventsEmitter;
+    final Subject<S, S> eventsEmitter = BehaviorSubject.create();
     boolean isRunning = false;
     State currentState = State.CREATED;
     Strategy strategy = Strategy.WAIT_FOR_PREVIOUS;
@@ -139,10 +139,10 @@ public abstract class Job<S> {
                         eventsEmitter.onCompleted();
                     }
                 })
-                .subscribeOn(Schedulers.io())
                 .subscribe(new Action1<S>() {
                     @Override
                     public void call(S s) {
+                        System.out.println(jobId + " onNext called");
                         eventsEmitter.onNext(s);
                     }
                 }, new Action1<Throwable>() {
@@ -153,29 +153,14 @@ public abstract class Job<S> {
                 });
     }
 
-    public void subscribeTo(Observable<S> operation, final Subject<S, S> subject) {
-        if (eventsEmitter != null) {
-            throw new IllegalStateException();
-        }
-        eventsEmitter = subject;
-        subscribeTo(operation);
-    }
-
-    void setEmitter(Subject<S, S> emitter) {
-        if (eventsEmitter != null) {
-            throw new IllegalStateException("Emitter is already set");
-        }
-        eventsEmitter = emitter;
-    }
-
     public void waitFor(Job job) {
-        waitFor(new JobEvent(job.jobId, State.FINISHED));
+        waitFor(new JobEvent(job.jobId));
     }
 
     public void waitFor(Job... jobs) {
         List<JobEvent> jobEvents = new ArrayList<>();
         for (Job job : jobs) {
-            jobEvents.add(new JobEvent(job.jobId, State.FINISHED));
+            jobEvents.add(new JobEvent(job.jobId));
         }
         waitFor(jobEvents);
     }
@@ -205,6 +190,7 @@ public abstract class Job<S> {
     }
 
     private void switchState(State state) {
+        System.out.println(jobId + " " + state);
         currentState = state;
     }
 
@@ -215,10 +201,7 @@ public abstract class Job<S> {
             subscription.unsubscribe();
             subscription = null;
         }
-        if (eventsEmitter != null) {
-            eventsEmitter.onCompleted();
-            eventsEmitter = null;
-        }
+        eventsEmitter.onCompleted();
     }
 
     public Observable<S> asObservable() {

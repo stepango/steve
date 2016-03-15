@@ -1,13 +1,13 @@
 package com.stepango.steve;
 
-//TODO: jobid should be enough
+/**
+ * Wrapper class for events condition storing
+ */
 public class JobEvent {
 
     final String jobId;
-    final Job.State state;
 
-    public JobEvent(String jobId, Job.State state) {
+    public JobEvent(String jobId) {
         this.jobId = jobId;
-        this.state = state;
     }
 }

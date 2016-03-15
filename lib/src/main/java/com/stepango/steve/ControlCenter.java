@@ -3,7 +3,6 @@ package com.stepango.steve;
 import java.util.concurrent.ConcurrentHashMap;
 
 import rx.functions.Action1;
-import rx.subjects.BehaviorSubject;
 
 //TODO Job shouldn't broadcast events
 @SuppressWarnings("Convert2Lambda")
@@ -72,7 +71,7 @@ public class ControlCenter {
             } else {
                 JOBS.put(slave.jobId, slave);
                 slave.addAfterAction(after);
-                slave.subscribeTo(slave.operation(), BehaviorSubject.create());
+                slave.subscribeTo(slave.operation());
             }
         }
         return slave;
@@ -87,7 +86,7 @@ public class ControlCenter {
     <S> Job<S> resubscribePrevious(Job<S> master) {
         synchronized (master.getClass()) {
             master.addAfterAction(after);
-            master.subscribeTo(master.operation(), BehaviorSubject.create());
+            master.subscribeTo(master.operation());
             @SuppressWarnings("unchecked")
             Job<S> slave = JOBS.put(master.jobId, master);
             if (slave != null) {

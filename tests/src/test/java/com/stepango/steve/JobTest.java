@@ -6,7 +6,6 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import rx.observers.TestSubscriber;
-import rx.subjects.BehaviorSubject;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -43,7 +42,7 @@ public class JobTest {
     @Test(expected = IllegalStateException.class)
     public void waitFor() throws Exception {
         Job<Object> job = JobTestHelper.makeJob();
-        JobEvent event = new JobEvent(job.jobId, Job.State.CREATED);
+        JobEvent event = new JobEvent(job.jobId);
         job.waitFor(event);
         job.waitFor(event);
     }
@@ -51,7 +50,7 @@ public class JobTest {
     @Test(expected = IllegalArgumentException.class)
     public void waitForChecks() {
         Job job = JobTestHelper.makeJob();
-        JobEvent event = new JobEvent(job.jobId, Job.State.CREATED);
+        JobEvent event = new JobEvent(job.jobId);
         job.waitFor(event, event);
     }
 
@@ -60,19 +59,11 @@ public class JobTest {
         assertNotNull(JobTestHelper.makeJob().start());
     }
 
-    @Test(expected = IllegalStateException.class)
-    public void setEmitter() {
-        Job<Object> job = JobTestHelper.makeJob();
-        job.setEmitter(BehaviorSubject.create());
-        assertTrue(job.eventsEmitter != null);
-        job.setEmitter(BehaviorSubject.create());
-    }
-
     @Test
     public void unsubscribe() {
         Job<Object> job = JobTestHelper.makeJob();
         job.unsubscribe();
-        assertNull(job.eventsEmitter);
+        assertNotNull(job.eventsEmitter);
         assertNull(job.subscription);
         assertEquals(Job.State.FINISHED, job.currentState);
     }
@@ -82,7 +73,7 @@ public class JobTest {
         Job<Object> job = JobTestHelper.makeJob();
         job.start();
         job.unsubscribe();
-        assertNull(job.eventsEmitter);
+        assertNotNull(job.eventsEmitter);
         assertNull(job.subscription);
         assertEquals(Job.State.FINISHED, job.currentState);
     }
